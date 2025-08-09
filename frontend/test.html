@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Playback Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 8px; }
+        button { background: #1db954; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1ed760; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #1db954; }
+        .error { background: #e22134; }
+        .warning { background: #ff9500; }
+        audio { width: 100%; margin: 10px 0; }
+        pre { background: #1a1a1a; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🎵 Song Playback Test</h1>
+    
+    <div class="test-section">
+        <h3>1. Test Direct Audio Playback</h3>
+        <p>This tests if your browser can play audio at all:</p>
+        <audio controls>
+            <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+            Your browser does not support audio.
+        </audio>
+        <div id="audioTest"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Authentication Status</h3>
+        <button onclick="checkAuth()">Check Login Status</button>
+        <div id="authStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Search for Test Songs</h3>
+        <button onclick="searchTestSong()">Search "Blinding Lights"</button>
+        <button onclick="testPreviewURL()">Test Preview URLs</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Direct Preview Test</h3>
+        <p>If we find preview URLs, we'll test them directly:</p>
+        <div id="previewTest"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>5. Console Logs</h3>
+        <div id="consoleLogs" style="height: 200px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 4px;"></div>
+    </div>
+
+    <script>
+        // Capture console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logContainer = document.getElementById('consoleLogs');
+        
+        function addLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.style.color = type === 'error' ? '#ff6b6b' : '#4ecdc4';
+            logDiv.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logDiv);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(args.join(' '), 'error');
+        };
+
+        function showStatus(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function checkAuth() {
+            const accessToken = localStorage.getItem('spotify_access_token');
+            const refreshToken = localStorage.getItem('spotify_refresh_token');
+            const expiry = localStorage.getItem('spotify_token_expiry');
+            
+            console.log('Checking authentication...');
+            
+            if (!accessToken) {
+                showStatus('authStatus', '❌ No access token found. Please login first.', 'error');
+                return false;
+            }
+            
+            const expiryDate = new Date(parseInt(expiry));
+            const now = new Date();
+            const isExpired = now >= expiryDate;
+            
+            if (isExpired) {
+                showStatus('authStatus', `⚠️ Token expired at ${expiryDate.toLocaleString()}`, 'warning');
+                return false;
+            } else {
+                showStatus('authStatus', `✅ Token valid until ${expiryDate.toLocaleString()}`, 'success');
+                return true;
+            }
+        }
+
+        async function searchTestSong() {
+            if (!checkAuth()) {
+                return;
+            }
+
+            const accessToken = localStorage.getItem('spotify_access_token');
+            console.log('Searching for songs with previews...');
+            
+            // Try multiple searches for songs that typically have previews
+            const queries = [
+                'shape%20of%20you%20ed%20sheeran',
+                'someone%20like%20you%20adele',
+                'rolling%20in%20the%20deep%20adele',
+                'uptown%20funk%20bruno%20mars',
+                'thinking%20out%20loud%20ed%20sheeran'
+            ];
+            
+            for (const query of queries) {
+                try {
+                    console.log(`Trying search: ${query.replace(/%20/g, ' ')}`);
+                    const response = await fetch(`/search?q=${query}&type=track&limit=3`, {
+                        headers: { 'Authorization': `Bearer ${accessToken}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const tracks = data.tracks ? data.tracks.items : [];
+                        const tracksWithPreviews = tracks.filter(track => track.preview_url);
+                        
+                        console.log(`Found ${tracks.length} tracks, ${tracksWithPreviews.length} with previews`);
+                        
+                        if (tracksWithPreviews.length > 0) {
+                            let resultsHTML = `<div class="status success">✅ Found ${tracksWithPreviews.length} tracks with previews!</div>`;
+                            tracksWithPreviews.forEach((track, index) => {
+                                resultsHTML += `
+                                    <div style="margin: 10px 0; padding: 10px; background: #333; border-radius: 4px;">
+                                        <strong>${track.name}</strong> by ${track.artists[0].name}<br>
+                                        Preview Available: ✅<br>
+                                        <button onclick="playPreview('${track.preview_url}', '${track.name}')">▶️ Test Play This</button>
+                                    </div>
+                                `;
+                            });
+                            document.getElementById('searchResults').innerHTML = resultsHTML;
+                            return; // Stop searching once we find tracks with previews
+                        }
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            }
+            
+            // If we get here, no songs with previews were found
+            showStatus('searchResults', '❌ No tracks with previews found. This is a Spotify limitation - many songs don\'t have 30-second previews available.', 'warning');
+        }
+
+        function playPreview(previewUrl, trackName) {
+            console.log(`Attempting to play: ${trackName}`);
+            console.log(`Preview URL: ${previewUrl}`);
+            
+            const audio = new Audio(previewUrl);
+            
+            audio.addEventListener('loadstart', () => {
+                console.log('Audio loading started');
+                addLog(`Loading: ${trackName}`);
+            });
+            
+            audio.addEventListener('canplay', () => {
+                console.log('Audio can play');
+                addLog(`Can play: ${trackName}`);
+            });
+            
+            audio.addEventListener('play', () => {
+                console.log('Audio started playing');
+                addLog(`Playing: ${trackName}`);
+            });
+            
+            audio.addEventListener('error', (e) => {
+                console.error('Audio error:', e);
+                addLog(`Error playing: ${trackName} - ${e.message}`, 'error');
+            });
+            
+            // Create test player
+            const testDiv = document.getElementById('previewTest');
+            testDiv.innerHTML = `
+                <div style="padding: 10px; background: #333; border-radius: 4px; margin: 10px 0;">
+                    <strong>Testing: ${trackName}</strong><br>
+                    <audio controls src="${previewUrl}" style="width: 100%; margin: 10px 0;"></audio>
+                    <br>
+                    <button onclick="this.previousElementSibling.previousElementSibling.play()">Play</button>
+                    <button onclick="this.previousElementSibling.previousElementSibling.pause()">Pause</button>
+                </div>
+            `;
+            
+            // Also try programmatic play
+            audio.play().catch(error => {
+                console.error('Play failed:', error);
+                addLog(`Play failed: ${error.message}`, 'error');
+            });
+        }
+
+        async function testPreviewURL() {
+            // Test with a known working preview URL
+            console.log('Testing with sample preview URL...');
+            const sampleUrl = 'https://p.scdn.co/mp3-preview/9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a';
+            playPreview(sampleUrl, 'Test Sample');
+        }
+
+        // Run initial checks
+        console.log('Page loaded, running initial checks...');
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="spotify-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Logo -->
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="ri-spotify-fill"></i>
+                    <span>Spotify</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <ul class="nav-main">
+                    <li class="nav-item active">
+                        <i class="ri-home-5-fill"></i>
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item">
+                        <i class="ri-search-line"></i>
+                        <span>Search</span>
+                    </li>
+                    <li class="nav-item">
+                        <i class="ri-stack-line"></i>
+                        <span>Your Library</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Create Playlist -->
+            <div class="sidebar-create">
+                <div class="create-item">
+                    <div class="create-icon">
+                        <i class="ri-add-line"></i>
+                    </div>
+                    <span>Create Playlist</span>
+                </div>
+                <div class="create-item">
+                    <div class="create-icon liked">
+                        <i class="ri-heart-fill"></i>
+                    </div>
+                    <span>Liked Songs</span>
+                </div>
+            </div>
+
+            <!-- Playlists -->
+            <div class="sidebar-playlists">
+                <div id="sidebarPlaylistsContainer">
+                    <!-- Playlists will be populated here -->
+                </div>
+            </div>
+
+            <!-- User Profile -->
+            <div class="sidebar-user" id="sidebarUser">
+                <div id="loginSection" class="login-section">
+                    <button id="loginBtn" class="login-btn">
+                        <i class="ri-spotify-fill"></i>
+                        Log in
+                    </button>
+                </div>
+                <div id="userProfile" class="user-profile hidden">
+                    <img id="userAvatar" src="" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <span id="userName" class="user-name">User</span>
+                        <button id="logoutBtn" class="logout-btn">
+                            <i class="ri-logout-box-line"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="nav-buttons">
+                    <button class="nav-btn" disabled>
+                        <i class="ri-arrow-left-line"></i>
+                    </button>
+                    <button class="nav-btn" disabled>
+                        <i class="ri-arrow-right-line"></i>
+                    </button>
+                </div>
+
+                <div class="search-container" id="searchContainer">
+                    <div class="search-box">
+                        <i class="ri-search-line search-icon"></i>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="What do you want to listen to?"
+                            class="search-input"
+                        >
+                    </div>
+                </div>
+
+                <div class="top-bar-user">
+                    <button class="upgrade-btn">Upgrade</button>
+                    <div class="user-menu" id="topBarUser">
+                        <!-- User info will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Welcome Section -->
+                <section id="welcomeSection" class="welcome-section">
+                    <div class="welcome-content">
+                        <h1>Good evening</h1>
+                        <div class="quick-picks">
+                            <div class="quick-pick-item">
+                                <div class="quick-pick-icon">
+                                    <i class="ri-heart-fill"></i>
+                                </div>
+                                <span>Liked Songs</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Search Results Section -->
+                <section id="resultsSection" class="results-section hidden">
+                    <div class="section-header">
+                        <h2 id="resultsTitle">Search Results</h2>
+                    </div>
+                    <div id="resultsContainer" class="results-grid">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </section>
+
+                <!-- Your Playlists Section -->
+                <section id="playlistsSection" class="playlists-section hidden">
+                    <div class="section-header">
+                        <h2>Made for you</h2>
+                    </div>
+                    <div id="playlistsContainer" class="playlists-grid">
+                        <!-- Playlists will be populated here -->
+                    </div>
+                </section>
+
+                <!-- Recently Played -->
+                <section class="recently-played-section">
+                    <div class="section-header">
+                        <h2>Recently played</h2>
+                        <button class="show-all-btn">Show all</button>
+                    </div>
+                    <div class="recent-items">
+                        <!-- Recently played items would go here -->
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Now Playing Bar -->
+    <div class="now-playing-bar" id="nowPlayingBar">
+        <div class="now-playing-left">
+            <div class="track-info" id="trackInfo">
+                <img id="currentTrackImage" src="" alt="Track" class="track-image">
+                <div class="track-details">
+                    <div id="currentTrackName" class="track-name">No track selected</div>
+                    <div id="currentTrackArtist" class="track-artist">Select a song to play</div>
+                </div>
+                <button class="like-btn">
+                    <i class="ri-heart-line"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="now-playing-center">
+            <div class="player-controls">
+                <button class="control-btn shuffle">
+                    <i class="ri-shuffle-line"></i>
+                </button>
+                <button class="control-btn prev" id="prevBtn">
+                    <i class="ri-skip-back-fill"></i>
+                </button>
+                <button class="control-btn play-pause" id="playPauseBtn">
+                    <i class="ri-play-circle-fill"></i>
+                </button>
+                <button class="control-btn next" id="nextBtn">
+                    <i class="ri-skip-forward-fill"></i>
+                </button>
+                <button class="control-btn repeat">
+                    <i class="ri-repeat-line"></i>
+                </button>
+            </div>
+            <div class="progress-container">
+                <span id="currentTime" class="time">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div id="progressFill" class="progress-fill"></div>
+                    <div class="progress-handle"></div>
+                </div>
+                <span id="totalTime" class="time">0:00</span>
+            </div>
+        </div>
+
+        <div class="now-playing-right">
+            <button class="control-btn">
+                <i class="ri-mic-line"></i>
+            </button>
+            <button class="control-btn">
+                <i class="ri-stack-line"></i>
+            </button>
+            <button class="control-btn">
+                <i class="ri-computer-line"></i>
+            </button>
+            <div class="volume-container">
+                <button class="control-btn volume">
+                    <i class="ri-volume-up-line"></i>
+                </button>
+                <div class="volume-bar">
+                    <div class="volume-fill"></div>
+                </div>
+            </div>
+            <button class="control-btn fullscreen">
+                <i class="ri-fullscreen-line"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="audioElement" preload="metadata"></audio>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="error-message hidden">
+        <i class="ri-error-warning-line"></i>
+        <span id="errorText"></span>
+        <button id="closeError" class="close-error">×</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

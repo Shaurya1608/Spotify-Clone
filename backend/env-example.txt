@@ -1,0 +1,20 @@
+# Copy this file to .env and fill in your credentials
+
+# Spotify API Configuration
+SPOTIFY_CLIENT_ID=your_client_id_here
+SPOTIFY_CLIENT_SECRET=your_client_secret_here
+SPOTIFY_REDIRECT_URI=http://localhost:3000/callback
+
+# Server Configuration
+PORT=3000
+
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/spotify-clone
+# OR for MongoDB Atlas (cloud):
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/spotify-clone
+
+# JWT Secret for authentication
+JWT_SECRET=your-super-secret-jwt-key-here
+
+# Session Secret
+SESSION_SECRET=your-session-secret-here

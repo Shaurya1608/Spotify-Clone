@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 8px; }
+        button { background: #1db954; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1ed760; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #1db954; }
+        .error { background: #e22134; }
+        .playlist-item { background: #333; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        pre { background: #1a1a1a; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🎵 Playlist Debug Test</h1>
+    
+    <div class="test-section">
+        <h3>1. Authentication Check</h3>
+        <button onclick="checkAuth()">Check Auth Status</button>
+        <div id="authResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Playlist API Test</h3>
+        <button onclick="testPlaylistAPI()">Test Playlist Loading</button>
+        <div id="playlistResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. User Profile Test</h3>
+        <button onclick="testUserProfile()">Test User Profile</button>
+        <div id="profileResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Find Songs with Previews</h3>
+        <button onclick="findSongsWithPreviews()">Search for Playable Songs</button>
+        <div id="previewResult"></div>
+    </div>
+
+    <script>
+        function showStatus(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function checkAuth() {
+            const accessToken = localStorage.getItem('spotify_access_token');
+            const expiry = localStorage.getItem('spotify_token_expiry');
+            
+            if (!accessToken) {
+                showStatus('authResult', '❌ No access token. Please login at main app first.', 'error');
+                return false;
+            }
+            
+            const isExpired = Date.now() >= parseInt(expiry);
+            if (isExpired) {
+                showStatus('authResult', '⚠️ Token expired. Please re-login.', 'error');
+                return false;
+            }
+            
+            showStatus('authResult', '✅ Authentication valid', 'success');
+            return true;
+        }
+
+        async function testPlaylistAPI() {
+            if (!checkAuth()) return;
+            
+            const accessToken = localStorage.getItem('spotify_access_token');
+            
+            try {
+                console.log('Testing playlist API...');
+                const response = await fetch('/playlists?limit=10', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Playlist data:', data);
+                    
+                    if (data.items && data.items.length > 0) {
+                        let playlistHTML = `<div class="status success">✅ Found ${data.items.length} playlists</div>`;
+                        data.items.forEach(playlist => {
+                            playlistHTML += `
+                                <div class="playlist-item">
+                                    <strong>${playlist.name}</strong><br>
+                                    Tracks: ${playlist.tracks.total}<br>
+                                    Owner: ${playlist.owner.display_name}<br>
+                                    Public: ${playlist.public ? 'Yes' : 'No'}
+                                </div>
+                            `;
+                        });
+                        document.getElementById('playlistResult').innerHTML = playlistHTML;
+                    } else {
+                        showStatus('playlistResult', '⚠️ No playlists found in your account', 'error');
+                    }
+                } else {
+                    const error = await response.text();
+                    showStatus('playlistResult', `❌ API Error: ${response.status} - ${error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('playlistResult', `❌ Request Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUserProfile() {
+            if (!checkAuth()) return;
+            
+            const accessToken = localStorage.getItem('spotify_access_token');
+            
+            try {
+                const response = await fetch('/me', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    const profileHTML = `
+                        <div class="status success">✅ User Profile Loaded</div>
+                        <div class="playlist-item">
+                            <strong>Name:</strong> ${user.display_name || 'No name'}<br>
+                            <strong>Email:</strong> ${user.email || 'No email'}<br>
+                            <strong>Country:</strong> ${user.country || 'Unknown'}<br>
+                            <strong>Followers:</strong> ${user.followers?.total || 0}<br>
+                            <strong>Account Type:</strong> ${user.product || 'Unknown'}
+                        </div>
+                    `;
+                    document.getElementById('profileResult').innerHTML = profileHTML;
+                } else {
+                    showStatus('profileResult', `❌ Profile Error: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showStatus('profileResult', `❌ Profile Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function findSongsWithPreviews() {
+            if (!checkAuth()) return;
+            
+            const accessToken = localStorage.getItem('spotify_access_token');
+            
+            // Try different genres and older songs that often have previews
+            const searches = [
+                'year:1990-2010 pop',
+                'genre:classical',
+                'podcast',
+                'instrumental',
+                'year:1980-1990',
+                'beatles',
+                'michael jackson',
+                'queen',
+                'elvis presley'
+            ];
+            
+            let foundPreviews = [];
+            
+            for (const searchTerm of searches) {
+                try {
+                    const response = await fetch(`/search?q=${encodeURIComponent(searchTerm)}&type=track&limit=10`, {
+                        headers: { 'Authorization': `Bearer ${accessToken}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const tracksWithPreviews = data.tracks.items.filter(track => track.preview_url);
+                        
+                        if (tracksWithPreviews.length > 0) {
+                            foundPreviews.push(...tracksWithPreviews.slice(0, 3)); // Take first 3
+                            if (foundPreviews.length >= 10) break; // Stop when we have enough
+                        }
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            }
+            
+            if (foundPreviews.length > 0) {
+                let previewHTML = `<div class="status success">✅ Found ${foundPreviews.length} songs with previews!</div>`;
+                foundPreviews.forEach(track => {
+                    previewHTML += `
+                        <div class="playlist-item">
+                            <strong>${track.name}</strong> by ${track.artists[0].name}<br>
+                            <audio controls style="width: 100%; margin: 5px 0;">
+                                <source src="${track.preview_url}" type="audio/mpeg">
+                            </audio>
+                        </div>
+                    `;
+                });
+                document.getElementById('previewResult').innerHTML = previewHTML;
+            } else {
+                showStatus('previewResult', '❌ No songs with previews found. This may be due to your region or account type.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
