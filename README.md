@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎵 Spotify Clone Web App
 
 A modern web application that integrates with the Spotify Web API to search for music, view playlists, and play 30-second track previews.
@@ -202,3 +203,6 @@ This project is for educational purposes. Spotify data is subject to Spotify's t
 ---
 
 **Note**: This is a demo application. For production use, implement additional security measures, error handling, and scalability considerations.
+=======
+# Spotify-Clone
+>>>>>>> c0228d37c033ef948b4e298b8be2b49f0d7a8272
